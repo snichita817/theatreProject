@@ -10,6 +10,7 @@ class Actor{
 public:
     friend istream& operator>>(istream&, Actor&);
     friend ostream& operator<<(ostream&, const Actor&);
+    Actor& operator=(Actor&);
     Actor() { this->name = "-"; this->age = 0; }
     //~Actor() {
     //    cout << this->name << " is no longer working in the theatre.";
@@ -25,7 +26,7 @@ class Spectacle {
 public:
     friend istream& operator>>(istream&, Spectacle&);
     friend ostream& operator<<(ostream&, const Spectacle&);
-    //Spectacle& operator=(Spectacle&);
+    Spectacle& operator=(Spectacle&);
     //~Spectacle();
 };
 
@@ -39,11 +40,13 @@ public:
 
 int main()
 {
-    Spectacle s1, s2;
-    cin >> s1;
-    cout << s1;
-    cout << "================================"<<endl;
-    cin >> s2;
+    Spectacle sp1, sp2;
+
+    cin >> sp1;
+    sp2 = sp1;
+
+    cout << endl << sp1 << endl << endl << sp2;
+
     return 0;
 }
 
@@ -58,15 +61,18 @@ char* Theatre::get_address() {
 }
 
 // Spectacle
-//Spectacle& Spectacle::operator= (Spectacle& spec) {
-//    if (this != &spec) {
-//        cout << "Copying spectacle details..." << endl;
-//        this->spectacle_name = spec.spectacle_name;
-//        this->number_of_actors = spec.number_of_actors;
-//        this->rating = spec.rating;
-//    }
-//    return *this;
-//}
+Spectacle& Spectacle::operator= (Spectacle& spec) {
+    if (this != &spec) {
+        cout << "Copying spectacle details..." << endl;
+        this->spectacle_name = spec.spectacle_name;
+        this->number_of_actors = spec.number_of_actors;
+        this->rating = spec.rating;
+
+        for (int i = 0; i < spec.number_of_actors; i++)
+            this->actors.push_back(spec.actors[i]);
+    }
+    return *this;
+}
 
 istream& operator>>(istream& in, Spectacle& spec) {
     char s[255];
@@ -117,6 +123,17 @@ istream& operator>>(istream& in, Actor& act) {
 
 ostream& operator<<(ostream& out, const Actor& act) {
     out << "Actor's name is " << act.name << endl;
-    out << "Actor's age is " << act.age << endl;
+    out << act.name << "'s age is " << act.age << endl;
     return out;
+}
+
+Actor& Actor::operator=(Actor& act) {
+    if (this != &act) {
+        cout << "Copying actor details..." << endl;
+
+        this->age = act.age;
+        this->name = act.name;
+
+    }
+    return *this;
 }
