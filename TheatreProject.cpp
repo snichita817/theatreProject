@@ -14,16 +14,19 @@ void userMessage() {
          << "\t\t\t\t0 -> Quit application" << endl 
          << "\t\t\t\t1 -> Admin panel" << endl 
          << "\t\t\t\t2 -> Show theatre address" << endl 
-         << "\t\t\t\t3 -> Show spectacles that are in the theatre now" << endl << endl;
+         << "\t\t\t\t3 -> Show spectacles that are in the theatre now" << endl 
+         << "\t\t\t\t==================================================" << endl << endl;
     cout << "\tEnter your choice: ";
 }
 
 void adminMessage() {
-    cout << "\t\t\t\t0 -> Exit admin panel." << endl 
+    cout << "\t\t\t\t==================================================" << endl
+         << "\t\t\t\t0 -> Exit admin panel." << endl 
          << "\t\t\t\t1 -> Show theatre address" << endl 
          << "\t\t\t\t2 -> Add a spectacle" << endl 
          << "\t\t\t\t3 -> Show spectacles that are in the theatre now" << endl 
-         << "\t\t\t\t4 -> Modify theatre address" << endl << endl;
+         << "\t\t\t\t4 -> Modify theatre address" << endl 
+         << "\t\t\t\t==================================================" << endl << endl;
     cout << "\tEnter your choice: ";
 }
 
@@ -158,6 +161,10 @@ int main()
                                 cin.get();
                                 theatre.set_address(address);
                                 cout << "Your current address is set to: " << theatre.get_address() << endl;
+                                break;
+                            default:
+                                clear();
+                                cout << "Error! Can't process this command!" << endl;
                                 break;
                         }
                     } while (adminChoice!=0);
