@@ -60,7 +60,13 @@ class Spectacle {
 public:
     friend istream& operator>>(istream&, Spectacle&);
     friend ostream& operator<<(ostream&, const Spectacle&);
+    friend bool operator>(Spectacle&, Spectacle&);
+    friend bool operator<(Spectacle&, Spectacle&);
+    friend bool operator<(double&, Spectacle&);
+    friend bool operator>(double&, Spectacle&);
+    friend bool operator==(Spectacle&, string&);
     Spectacle& operator=(Spectacle&);
+
     char* get_name();
     double get_rating();
     void set_name(const char* name) {
@@ -106,7 +112,6 @@ public:
     void show_spectacle_actor_names(int index) { spectacles[index].print_actors(); }
     int get_number_of_spectacles();
     Spectacle get_spectacle_info(int index);
-    /*Actor get_actors_info*/
     char* get_address();
     void set_spectacle_name(const char* input, int index);
     void set_spectacle_rating(float input, int index);
@@ -120,8 +125,9 @@ public:
     }
     char* get_spectacle_name(int index);
     double get_spectacle_rating(int index);
+    void spectacle_sort();
+    void spectacle_reverse_sort();
     string get_spectacle_actor_name(int spec_i, int act_i) { return spectacles[spec_i].get_actor_name(act_i); }
- //   void set_spectacle_rating(double rating);
 };
 
 int main()
@@ -317,18 +323,32 @@ int main()
                                 do {
                                     if (theatre.get_number_of_spectacles() != 0) {
                                         theatre.show_spectacles_short();
+                                        cout << endl;
                                         cout << "Press the number coresponding to the spectacle if you want to learn more about it" << endl;
-                                        cout << "Or 0 if you want to return to the main menu." << endl;
+                                        cout << "Pres 0 if you want to return to the main menu." << endl;
+                                        cout << "Press -1 if you want spectacles sorted in the ascending order (by the rating)." << endl;
+                                        cout << "Press -2 if you want spectacles sorted in the descending order (by the rating)." << endl;
+                                        cout << "Selection: ";
                                         cin >> choiceSpectacle;
                                         switch (choiceSpectacle)
                                         {
-                                        case 0:
-                                            clear();
-                                            break;
-                                        default:
-                                            clear();
-                                            cout << theatre.get_spectacle_info(choiceSpectacle);
-                                            break;
+                                            case -1:
+                                                clear();
+                                                theatre.spectacle_sort();
+                                                break;
+
+                                            case -2:
+                                                clear();
+                                                theatre.spectacle_reverse_sort();
+                                                break;
+
+                                            case 0:
+                                                clear();
+                                                break;
+                                            default:
+                                                clear();
+                                                cout << theatre.get_spectacle_info(choiceSpectacle);
+                                                break;
                                         }
                                     }
                                     else {
@@ -372,18 +392,31 @@ int main()
                 do {
                     if (theatre.get_number_of_spectacles() != 0) {
                         theatre.show_spectacles_short();
+                        cout << endl;
                         cout << "Press the number coresponding to the spectacle if you want to learn more about it" << endl;
-                        cout << "Or 0 if you want to return to the main menu." << endl;
+                        cout << "Pres 0 if you want to return to the main menu." << endl;
+                        cout << "Press -1 if you want spectacles sorted in the ascending order (by the rating)." << endl;
+                        cout << "Press -2 if you want spectacles sorted in the descending order (by the rating)." << endl;
+                        cout << "Selection: ";
                         cin >> choiceSpectacle;
                         switch (choiceSpectacle)
                         {
-                        case 0:
-                            clear();
-                            break;
-                        default:
-                            clear();
-                            cout << theatre.get_spectacle_info(choiceSpectacle);
-                            break;
+                            case -1:
+                                clear();
+                                theatre.spectacle_sort();
+                                break;
+
+                            case -2:
+                                clear();
+                                theatre.spectacle_reverse_sort();
+                                break;
+                            case 0:
+                                clear();
+                                break;
+                            default:
+                                clear();
+                                cout << theatre.get_spectacle_info(choiceSpectacle);
+                                break;
                         }
                     }
                     else {
@@ -464,6 +497,39 @@ double Theatre::get_spectacle_rating(int index) {
     return spectacles[index].get_rating();
 }
 
+void Theatre::spectacle_sort() {
+    int ok = 1;
+    cout << "Sortin spectacles. Please wait..." << endl;
+    do {
+        ok = 0;
+        for(int i=0; i<spectacles.size()-1; i++)
+            if (spectacles[i] > spectacles[i + 1]) {
+                Spectacle aux;
+                aux = spectacles[i];
+                spectacles[i] = spectacles[i + 1];
+                spectacles[i + 1] = aux;
+                ok = 1;
+            }
+    } while (ok == 1);
+
+}
+
+void Theatre::spectacle_reverse_sort() {
+    int ok = 1;
+    cout << "Sorting spectacles. Please wait..." << endl;
+    do {
+        ok = 0;
+        for (int i = 0; i < spectacles.size() - 1; i++)
+            if (spectacles[i] < spectacles[i + 1]) {
+                Spectacle aux;
+                aux = spectacles[i];
+                spectacles[i] = spectacles[i + 1];
+                spectacles[i + 1] = aux;
+                ok = 1;
+            }
+    } while (ok == 1);
+}
+
 // Spectacle
 Spectacle& Spectacle::operator= (Spectacle& spec) {
     if (this != &spec) {
@@ -509,6 +575,22 @@ ostream& operator<<(ostream& out, const Spectacle& spec) {
         out << i+1 << ". " << spec.actors[i] << endl;
     }
     return out;
+}
+
+bool operator>(Spectacle& spc1, Spectacle& spc2) {
+    return spc1.rating > spc2.rating;
+}
+
+bool operator<(Spectacle& spc1, Spectacle& spc2) {
+    return spc1.rating < spc2.rating;
+}
+
+bool operator>(double& x, Spectacle& spc) {
+    return x > spc.rating;
+}
+
+bool operator<(double& x, Spectacle& spc) {
+    return x < spc.rating;
 }
 
 char* Spectacle::get_name() {
