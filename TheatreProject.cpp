@@ -6,32 +6,34 @@ using namespace std;
 
 void clear() {
     // CSI[2J clears screen, CSI[H moves the cursor to top-left corner
-    cout << "\x1B[2J\x1B[H";
+    system("cls");
+    //cout << "\x1B[2J\x1B[H";
 }
 
 void userMessage() {
     cout << "\t\t\t\t==================================================" << endl
-         << "\t\t\t\t0 -> Quit application" << endl 
-         << "\t\t\t\t1 -> Admin panel" << endl 
-         << "\t\t\t\t2 -> Show theatre address" << endl 
-         << "\t\t\t\t3 -> Show spectacles that are in the theatre now" << endl 
-         << "\t\t\t\t==================================================" << endl << endl;
+        << "\t\t\t\t0 -> Quit application" << endl
+        << "\t\t\t\t1 -> Admin panel" << endl
+        << "\t\t\t\t2 -> Show theatre address" << endl
+        << "\t\t\t\t3 -> Show spectacles that are in the theatre now" << endl
+        << "\t\t\t\t4 -> Search spectacle by its name" << endl
+        << "\t\t\t\t==================================================" << endl << endl;
     cout << "\tEnter your choice: ";
 }
 
 void adminMessage() {
     cout << "\t\t\t\t==================================================" << endl
-         << "\t\t\t\t0 -> Exit admin panel." << endl 
-         << "\t\t\t\t1 -> Show theatre address" << endl 
-         << "\t\t\t\t2 -> Add a spectacle" << endl 
-         << "\t\t\t\t3 -> Modify spectacle data" << endl
-         << "\t\t\t\t4 -> Show spectacles that are in the theatre now" << endl 
-         << "\t\t\t\t5 -> Modify theatre address" << endl 
-         << "\t\t\t\t==================================================" << endl << endl;
+        << "\t\t\t\t0 -> Exit admin panel." << endl
+        << "\t\t\t\t1 -> Show theatre address" << endl
+        << "\t\t\t\t2 -> Add a spectacle" << endl
+        << "\t\t\t\t3 -> Modify spectacle data" << endl
+        << "\t\t\t\t4 -> Show spectacles that are in the theatre now" << endl
+        << "\t\t\t\t5 -> Modify theatre address" << endl
+        << "\t\t\t\t==================================================" << endl << endl;
     cout << "\tEnter your choice: ";
 }
 
-class Actor{
+class Actor {
     string name;
     int age;
 public:
@@ -39,16 +41,23 @@ public:
     friend ostream& operator<<(ostream&, const Actor&);
     Actor& operator=(Actor&);
     string get_name() { return name; }
+    int get_age() { return age; }
     void set_name(string name) {
         this->name = name;
     }
     void set_age(int age) {
         this->age = age;
     }
-    Actor() { this->name = "-"; this->age = 0; }
-    //~Actor() {
-    //    cout << this->name << " is no longer working in the theatre.";
-    //}
+    //Actor() { this->name = ""; this->age = -1; }
+    Actor(string name = "", int age = -1) {
+        this->name = name;
+        this->age = age;
+    }
+
+    Actor(const Actor&);
+
+    ~Actor() {
+    }
 };
 
 class Spectacle {
@@ -58,19 +67,20 @@ class Spectacle {
     double rating;
 
 public:
+
     friend istream& operator>>(istream&, Spectacle&);
     friend ostream& operator<<(ostream&, const Spectacle&);
     friend bool operator>(Spectacle&, Spectacle&);
     friend bool operator<(Spectacle&, Spectacle&);
     friend bool operator<(double&, Spectacle&);
     friend bool operator>(double&, Spectacle&);
-    friend bool operator==(Spectacle&, string&);
+    friend bool operator==(Spectacle&, const char*);
     Spectacle& operator=(Spectacle&);
 
     char* get_name();
     double get_rating();
     void set_name(const char* name) {
-        delete spectacle_name;
+        //delete[] spectacle_name;
         spectacle_name = new char[strlen(name) + 1];
         strcpy(spectacle_name, name);
     }
@@ -89,6 +99,7 @@ public:
         }
     }
     string get_actor_name(int input) { return actors[input].get_name(); }
+    int get_actor_age(int input) { return actors[input].get_age(); }
     void print_actors() {
         for (int i = 0; i < number_of_actors; i++)
             cout << i + 1 << ". " << actors[i].get_name() << endl;
@@ -99,7 +110,8 @@ public:
     void set_actor_age(int input, int age) {
         actors[input].set_age(age);
     }
-    //~Spectacle();
+
+
 };
 
 class Theatre {
@@ -112,6 +124,7 @@ public:
     void show_spectacle_actor_names(int index) { spectacles[index].print_actors(); }
     int get_number_of_spectacles();
     Spectacle get_spectacle_info(int index);
+    void search_spectacle(char* input);
     char* get_address();
     void set_spectacle_name(const char* input, int index);
     void set_spectacle_rating(float input, int index);
@@ -128,6 +141,11 @@ public:
     void spectacle_sort();
     void spectacle_reverse_sort();
     string get_spectacle_actor_name(int spec_i, int act_i) { return spectacles[spec_i].get_actor_name(act_i); }
+
+    ~Theatre() {
+        cout << endl << endl << "Theatre on address " << this->address << " is currently closed for renovation! We're sorry!" << endl << endl;
+        delete[] address;
+    }
 };
 
 int main()
@@ -140,299 +158,317 @@ int main()
 
     cout << "Set admin password: ";
     cin >> password;
-    
+
     clear();
-    
+
     cout << "Set theatre address: ";
-    cin.ignore();
+    cin.get();
     cin.get(address, 256);
     cin.get();
     theatre.set_address(address);
-    
+
     clear();
-    
+
     cout << "Your current address is set to: " << theatre.get_address() << endl << endl;
-    
+
     do {
         userMessage();
         cin >> choice;
         switch (choice)
         {
-            case 0:
-                cout << "Exit message!" << endl << endl;
-                return 0;
-            case 1: // admin
+        case 0:
+            return 0;
+        case 1: // admin
+            clear();
+            cout << "Enter your password: ";
+            cin >> verify;
+            if (verify == password) {
                 clear();
-                cout << "Enter your password: ";
-                cin >> verify;
-                if (verify == password) {
-                    clear();
-                    cout << "Logged in as admin!" << endl << endl;
-                    do {
-                        adminMessage();
-                        cin >> adminChoice;
-                        switch (adminChoice)
-                        {
-                            case 0:
+                cout << "Logged in as admin!" << endl << endl;
+                do {
+                    adminMessage();
+                    cin >> adminChoice;
+                    switch (adminChoice)
+                    {
+                    case 0:
+                        clear();
+                        cout << "You've logged out! Logged in as user!" << endl << endl;
+                        break;
+                    case 1:
+                        clear();
+                        cout << "The address is " << theatre.get_address() << endl << endl;
+                        break;
+                    case 2:
+                        clear();
+                        cin >> temp;
+                        theatre.add_spectacle(temp);
+                        break;
+                    case 3: // modify spectacle
+                        clear();
+                        do {
+                            if (theatre.get_number_of_spectacles() != 0) {
                                 clear();
-                                cout << "You've logged out! Logged in as user!" << endl << endl;
-                                break;
-                            case 1:
-                                clear();
-                                cout << "The address is " << theatre.get_address() << endl << endl;
-                                break;
-                            case 2:
-                                clear();
-                                cin >> temp;
-                                theatre.add_spectacle(temp);
-                                break;
-                            case 3: // modify spectacle
-                                clear();
-                                do {
-                                    if (theatre.get_number_of_spectacles() != 0) {
+                                theatre.show_spectacles_short();
+                                cout << "Press the number coresponding to the spectacle if you want to modify it." << endl;
+                                cout << "Or 0 if you want to return to the main menu." << endl;
+                                cin >> choiceSpectacle;
+                                switch (choiceSpectacle)
+                                {
+                                case 0:
+                                    clear();
+                                    break;
+                                default:
+                                    clear();
+                                    do {
                                         clear();
-                                        theatre.show_spectacles_short();
-                                        cout << "Press the number coresponding to the spectacle if you want to modify it." << endl;
-                                        cout << "Or 0 if you want to return to the main menu." << endl;
-                                        cin >> choiceSpectacle;
-                                        switch (choiceSpectacle)
+                                        cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
+                                        cout << "\t\t\t\t0 -> Go back to spectacle list" << endl;
+                                        cout << "\t\t\t\t1 -> Edit spectacle name" << endl;
+                                        cout << "\t\t\t\t2 -> Edit spectacle rating" << endl;
+                                        cout << "\t\t\t\t3 -> Edit number of actors (you will need to re-enter every single actor)" << endl;
+                                        cout << "\t\t\t\t4 -> Edit actor data" << endl;
+                                        cout << "Enter the option you want to edit: ";
+                                        cin >> editSpectacle;
+
+                                        switch (editSpectacle)
                                         {
-                                            case 0:
-                                                clear();
-                                                break;
-                                            default:
-                                                clear();
-                                                do {
+                                        case 0:
+                                            clear();
+                                            break;
+                                        case 1:
+                                            clear();
+                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
+                                            cout << "Enter new name for the spectacle: ";
+                                            cin.ignore();
+                                            char new_spectacle_name[255];
+                                            cin.get(new_spectacle_name, 255);
+                                            cin.get();
+                                            theatre.set_spectacle_name(new_spectacle_name, choiceSpectacle - 1);
+                                            break;
+                                        case 2:
+                                            clear();
+                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
+                                            cout << "Enter new rating for the spectacle (current rating is " << theatre.get_spectacle_rating(choiceSpectacle - 1) << "): ";
+                                            float newRating;
+                                            cin >> newRating;
+                                            theatre.set_spectacle_rating(newRating, choiceSpectacle - 1);
+                                            break;
+                                        case 3:
+                                            clear();
+                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
+                                            cout << "Enter how many actors are participating in the play: ";
+                                            int actorNumber;
+                                            cin >> actorNumber;
+                                            theatre.set_spectacle_nrActors(actorNumber, choiceSpectacle - 1);
+                                            // enter actors
+                                            theatre.set_spectacle_newActors(choiceSpectacle - 1);
+                                            break;
+
+                                        case 4:
+                                            clear();
+                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
+
+                                            do {
+                                                theatre.show_spectacle_actor_names(choiceSpectacle - 1);
+
+                                                cout << "Press the number corresponding to the actor you want to edit." << endl;
+                                                cout << "Or press 0 if you want to go back." << endl;
+                                                cin >> actorChoice;
+
+                                                switch (actorChoice)
+                                                {
+                                                case 0:
                                                     clear();
-                                                    cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
-                                                    cout << "\t\t\t\t0 -> Go back to spectacle list" << endl;
-                                                    cout << "\t\t\t\t1 -> Edit spectacle name" << endl;
-                                                    cout << "\t\t\t\t2 -> Edit spectacle rating" << endl;
-                                                    cout << "\t\t\t\t3 -> Edit number of actors (you will need to re-enter every single actor)" << endl;
-                                                    cout << "\t\t\t\t4 -> Edit actor data" << endl;
+                                                    break;
+                                                default:
+                                                    clear();
+                                                    cout << "You are currently editing " << theatre.get_spectacle_actor_name(choiceSpectacle - 1, actorChoice - 1) << endl << endl;
+                                                    cout << "\t\t\t\t0 -> Go back" << endl;
+                                                    cout << "\t\t\t\t1 -> Edit name" << endl;
+                                                    cout << "\t\t\t\t2 -> Edit age" << endl;
                                                     cout << "Enter the option you want to edit: ";
-                                                    cin >> editSpectacle;
-
-                                                    switch (editSpectacle)
+                                                    cin >> editActor;
+                                                    string actorName;
+                                                    int actorAge;
+                                                    switch (editActor)
                                                     {
-                                                        case 0:
-                                                            clear();
-                                                            break;
-                                                        case 1:
-                                                            clear();
-                                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
-                                                            cout << "Enter new name for the spectacle: ";
-                                                            cin.ignore();
-                                                            char new_spectacle_name[255];
-                                                            cin.get(new_spectacle_name, 255);
-                                                            cin.get();
-                                                            theatre.set_spectacle_name(new_spectacle_name, choiceSpectacle - 1);
-                                                            break;
-                                                        case 2:
-                                                            clear();
-                                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
-                                                            cout << "Enter new rating for the spectacle (current rating is " << theatre.get_spectacle_rating(choiceSpectacle-1) << "): ";
-                                                            float newRating;
-                                                            cin >> newRating;
-                                                            theatre.set_spectacle_rating(newRating, choiceSpectacle - 1);
-                                                            break;
-                                                        case 3:
-                                                            clear();
-                                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
-                                                            cout << "Enter how many actors are participating in the play: ";
-                                                            int actorNumber;
-                                                            cin >> actorNumber;
-                                                            theatre.set_spectacle_nrActors(actorNumber, choiceSpectacle - 1);
-                                                            // enter actors
-                                                            theatre.set_spectacle_newActors(choiceSpectacle - 1);
-                                                            break;
-                                                        
-                                                        case 4:
-                                                            clear();
-                                                            cout << "You're currently editing " << theatre.get_spectacle_name(choiceSpectacle - 1) << endl << endl;
-                                                            
-                                                            do {
-                                                                theatre.show_spectacle_actor_names(choiceSpectacle - 1);
+                                                    case 0:
+                                                        clear();
+                                                        break;
+                                                    case 1:
+                                                        clear();
+                                                        cout << "Enter new name for the actor: ";
+                                                        cin >> actorName;
+                                                        theatre.set_spectacle_newName(choiceSpectacle - 1, actorChoice - 1, actorName);
+                                                        break;
+                                                    case 2:
+                                                        clear();
+                                                        cout << "Enter new age for the actor: ";
+                                                        cin >> actorAge;
+                                                        theatre.set_spectacle_newAge(choiceSpectacle - 1, actorChoice - 1, actorAge);
+                                                        break;
 
-                                                                cout << "Press the number corresponding to the actor you want to edit." << endl;
-                                                                cout << "Or press 0 if you want to go back." << endl;
-                                                                cin >> actorChoice;
-
-                                                                switch (actorChoice)
-                                                                {
-                                                                    case 0:
-                                                                        clear();
-                                                                        break;
-                                                                    default:
-                                                                        clear();
-                                                                        cout << "You are currently editing " << theatre.get_spectacle_actor_name(choiceSpectacle - 1, actorChoice - 1) << endl << endl;
-                                                                        cout << "\t\t\t\t0 -> Go back" << endl;
-                                                                        cout << "\t\t\t\t1 -> Edit name" << endl;
-                                                                        cout << "\t\t\t\t2 -> Edit age" << endl;
-                                                                        cout << "Enter the option you want to edit: ";
-                                                                        cin >> editActor;
-                                                                        string actorName;
-                                                                        int actorAge;
-                                                                        switch (editActor)
-                                                                        {
-                                                                            case 0:
-                                                                                clear();
-                                                                                break;
-                                                                            case 1:
-                                                                                clear();
-                                                                                cout << "Enter new name for the actor: ";
-                                                                                cin >> actorName;
-                                                                                theatre.set_spectacle_newName(choiceSpectacle - 1, actorChoice - 1, actorName);
-                                                                                break;
-                                                                            case 2:
-                                                                                clear();
-                                                                                cout << "Enter new age for the actor: ";
-                                                                                cin >> actorAge;
-                                                                                theatre.set_spectacle_newAge(choiceSpectacle - 1, actorChoice - 1, actorAge);
-                                                                                break;
-
-                                                                        }
-
-                                                                        break;
-                                                                        
-                                                                }
-
-                                                            } while (actorChoice != 0);
-
-                                                        default:
-                                                            clear();
-                                                            cout << "Error! Can't process this command!" << endl;
-                                                            break;
                                                     }
 
-                                                } while (editSpectacle != 0);
+                                                    break;
+
+                                                }
+
+                                            } while (actorChoice != 0);
+
+                                        default:
+                                            clear();
+                                            cout << "Error! Can't process this command!" << endl;
+                                            break;
                                         }
-                                    }
-                                    else {
-                                        cout << "There are currently no spectacles in our theatre! We're sorry :(" << endl;
-                                        cout << "Press any number and enter to return to the menu: ";
-                                        cin >> choiceSpectacle;
-                                        choiceSpectacle = 0;
-                                        clear();
-                                        cout << endl << endl;
-                                    }
-                                } while (choiceSpectacle != 0);
-                                break;
-                            case 4:
-                                clear();
-                                do {
-                                    if (theatre.get_number_of_spectacles() != 0) {
-                                        theatre.show_spectacles_short();
-                                        cout << endl;
-                                        cout << "Press the number coresponding to the spectacle if you want to learn more about it" << endl;
-                                        cout << "Pres 0 if you want to return to the main menu." << endl;
-                                        cout << "Press -1 if you want spectacles sorted in the ascending order (by the rating)." << endl;
-                                        cout << "Press -2 if you want spectacles sorted in the descending order (by the rating)." << endl;
-                                        cout << "Selection: ";
-                                        cin >> choiceSpectacle;
-                                        switch (choiceSpectacle)
-                                        {
-                                            case -1:
-                                                clear();
-                                                theatre.spectacle_sort();
-                                                break;
 
-                                            case -2:
-                                                clear();
-                                                theatre.spectacle_reverse_sort();
-                                                break;
-
-                                            case 0:
-                                                clear();
-                                                break;
-                                            default:
-                                                clear();
-                                                cout << theatre.get_spectacle_info(choiceSpectacle);
-                                                break;
-                                        }
-                                    }
-                                    else {
-                                        cout << "There are currently no spectacles in our theatre! We're sorry :(" << endl;
-                                        cout << "Press any number to exit to exit: ";
-                                        cin >> choiceSpectacle;
-                                        choiceSpectacle = 0;
-                                        clear();
-                                        cout << endl << endl;
-                                    }
-                                } while (choiceSpectacle != 0);
-                                break;
-                            case 5:
+                                    } while (editSpectacle != 0);
+                                }
+                            }
+                            else {
+                                cout << "There are currently no spectacles in our theatre! We're sorry :(" << endl;
+                                cout << "Press any number and enter to return to the menu: ";
+                                cin >> choiceSpectacle;
+                                choiceSpectacle = 0;
                                 clear();
-                                cout << "Enter a valid address: ";
-                                cin.ignore();
-                                cin.get(address, 256);
-                                cin.get();
-                                theatre.set_address(address);
-                                cout << "Your current address is set to: " << theatre.get_address() << endl;
-                                break;
-                            default:
-                                clear();
-                                cout << "Error! Can't process this command!" << endl;
-                                break;
-                        }
-                    } while (adminChoice!=0);
+                                cout << endl << endl;
+                            }
+                        } while (choiceSpectacle != 0);
+                        break;
+                    case 4:
+                        clear();
+                        do {
+                            if (theatre.get_number_of_spectacles() != 0) {
+                                theatre.show_spectacles_short();
+                                cout << endl;
+                                cout << "Press the number coresponding to the spectacle if you want to learn more about it" << endl;
+                                cout << "Pres 0 if you want to return to the main menu." << endl;
+                                cout << "Press -1 if you want spectacles sorted in the ascending order (by the rating)." << endl;
+                                cout << "Press -2 if you want spectacles sorted in the descending order (by the rating)." << endl;
+                                cout << "Selection: ";
+                                cin >> choiceSpectacle;
+                                switch (choiceSpectacle)
+                                {
+                                case -1:
+                                    clear();
+                                    theatre.spectacle_sort();
+                                    break;
 
+                                case -2:
+                                    clear();
+                                    theatre.spectacle_reverse_sort();
+                                    break;
+
+                                case 0:
+                                    clear();
+                                    break;
+                                default:
+                                    clear();
+                                    cout << theatre.get_spectacle_info(choiceSpectacle);
+                                    break;
+                                }
+                            }
+                            else {
+                                cout << "There are currently no spectacles in our theatre! We're sorry :(" << endl;
+                                cout << "Press any number to exit to exit: ";
+                                cin >> choiceSpectacle;
+                                choiceSpectacle = 0;
+                                clear();
+                                cout << endl << endl;
+                            }
+                        } while (choiceSpectacle != 0);
+                        break;
+                    case 5:
+                        clear();
+                        cout << "Enter a valid address: ";
+                        cin.ignore();
+                        cin.get(address, 256);
+                        cin.get();
+                        theatre.set_address(address);
+                        cout << "Your current address is set to: " << theatre.get_address() << endl;
+                        break;
+                    default:
+                        clear();
+                        cout << "Error! Can't process this command!" << endl;
+                        break;
+                    }
+                } while (adminChoice != 0);
+
+            }
+            else {
+                clear();
+                cout << "Invalid password!" << endl << endl;
+            }
+            break;
+        case 2: // address
+            clear();
+            cout << "The address is " << theatre.get_address() << endl << endl;
+            break;
+        case 3:
+            clear();
+            do {
+                if (theatre.get_number_of_spectacles() != 0) {
+                    theatre.show_spectacles_short();
+                    cout << endl;
+                    cout << "Press the number coresponding to the spectacle if you want to learn more about it" << endl;
+                    cout << "Pres 0 if you want to return to the main menu." << endl;
+                    cout << "Press -1 if you want spectacles sorted in the ascending order (by the rating)." << endl;
+                    cout << "Press -2 if you want spectacles sorted in the descending order (by the rating)." << endl;
+                    cout << "Selection: ";
+                    cin >> choiceSpectacle;
+                    switch (choiceSpectacle)
+                    {
+                    case -1:
+                        clear();
+                        theatre.spectacle_sort();
+                        break;
+
+                    case -2:
+                        clear();
+                        theatre.spectacle_reverse_sort();
+                        break;
+                    case 0:
+                        clear();
+                        break;
+                    default:
+                        clear();
+                        cout << theatre.get_spectacle_info(choiceSpectacle);
+                        break;
+                    }
                 }
                 else {
+                    cout << "There are currently no spectacles in our theatre! We're sorry :(" << endl;
+                    cout << "Press any number to exit to exit: ";
+                    cin >> choiceSpectacle;
+                    choiceSpectacle = 0;
                     clear();
-                    cout << "Invalid password!" << endl << endl;
+                    cout << endl << endl;
                 }
-                break;
-            case 2: // address
-                clear();
-                cout << "The address is " << theatre.get_address() << endl << endl;
-                break;
-            case 3:
-                clear();
-                do {
-                    if (theatre.get_number_of_spectacles() != 0) {
-                        theatre.show_spectacles_short();
-                        cout << endl;
-                        cout << "Press the number coresponding to the spectacle if you want to learn more about it" << endl;
-                        cout << "Pres 0 if you want to return to the main menu." << endl;
-                        cout << "Press -1 if you want spectacles sorted in the ascending order (by the rating)." << endl;
-                        cout << "Press -2 if you want spectacles sorted in the descending order (by the rating)." << endl;
-                        cout << "Selection: ";
-                        cin >> choiceSpectacle;
-                        switch (choiceSpectacle)
-                        {
-                            case -1:
-                                clear();
-                                theatre.spectacle_sort();
-                                break;
+            } while (choiceSpectacle != 0);
+            break;
 
-                            case -2:
-                                clear();
-                                theatre.spectacle_reverse_sort();
-                                break;
-                            case 0:
-                                clear();
-                                break;
-                            default:
-                                clear();
-                                cout << theatre.get_spectacle_info(choiceSpectacle);
-                                break;
-                        }
-                    }
-                    else {
-                        cout << "There are currently no spectacles in our theatre! We're sorry :("<<endl;
-                        cout << "Press any number to exit to exit: ";
-                        cin >> choiceSpectacle;
-                        choiceSpectacle = 0;
-                        clear();
-                        cout << endl << endl;
-                    }
-                } while (choiceSpectacle != 0);
+        case 4:
+            clear();
+
+            if (theatre.get_number_of_spectacles() != 0) {
+                char name_input[256];
+                cout << "Search: ";
+                cin.ignore();
+                cin.get(name_input, 256);
+                cin.get();
+                theatre.search_spectacle(name_input);
                 break;
-            default:
-                clear();
-                cout << "Error! Can't process this command!" << endl;
+            }
+            else {
+                cout << "There are currently no spectacles in our theatre! We're sorry :(" << endl << endl;
                 break;
+            }
+            break;
+
+        default:
+            clear();
+            cout << "Error! Can't process this command!" << endl;
+            break;
         }
 
     } while (choice != 0);
@@ -441,10 +477,10 @@ int main()
 
 //Theatre
 void Theatre::set_address(const char* input) {
-    delete this->address;
+    //delete this->address;
     this->address = new char[strlen(input) + 1];
     strcpy(this->address, input);
-    cout << "Address successfully updated!"<<endl;
+    cout << "Address successfully updated!" << endl;
 }
 
 char* Theatre::get_address() {
@@ -460,7 +496,7 @@ void Theatre::show_spectacles_short() {
         cout << "There are currently no spectacles in our theatre! We're sorry :(";
     else
         for (int i = 0; i < spectacles.size(); i++)
-            cout << i+1 << ". " << spectacles[i].get_name() << " (rating: " << spectacles[i].get_rating() << "); "<<endl;
+            cout << i + 1 << ". " << spectacles[i].get_name() << " (rating: " << spectacles[i].get_rating() << "); " << endl;
 }
 
 int Theatre::get_number_of_spectacles() {
@@ -471,6 +507,18 @@ Spectacle Theatre::get_spectacle_info(int index) {
     index = index - 1;
     return spectacles[index];
     //cout << spectacles[index];
+}
+
+void Theatre::search_spectacle(char* input) {
+    int ok = 1;
+    for (int i = 0; i < spectacles.size(); i++)
+        if (spectacles[i] == input)
+        {
+            ok = 0;
+            cout << spectacles[i] << endl;
+        }
+    if (ok == 1)
+        cout << "\tNo such spectacle found! Please check spelling or come back another time!" << endl << endl;
 }
 
 void Theatre::set_spectacle_name(const char* input, int index) {
@@ -499,10 +547,10 @@ double Theatre::get_spectacle_rating(int index) {
 
 void Theatre::spectacle_sort() {
     int ok = 1;
-    cout << "Sortin spectacles. Please wait..." << endl;
+    cout << "Sorting spectacles. Please wait..." << endl;
     do {
         ok = 0;
-        for(int i=0; i<spectacles.size()-1; i++)
+        for (int i = 0; i < spectacles.size() - 1; i++)
             if (spectacles[i] > spectacles[i + 1]) {
                 Spectacle aux;
                 aux = spectacles[i];
@@ -572,7 +620,7 @@ ostream& operator<<(ostream& out, const Spectacle& spec) {
     out << "Rating of the spectacle: " << spec.rating << endl;
     out << "Number of actors: " << spec.number_of_actors << endl;
     for (int i = 0; i < spec.number_of_actors; i++) {
-        out << i+1 << ". " << spec.actors[i] << endl;
+        out << i + 1 << ". " << spec.actors[i] << endl;
     }
     return out;
 }
@@ -591,6 +639,20 @@ bool operator>(double& x, Spectacle& spc) {
 
 bool operator<(double& x, Spectacle& spc) {
     return x < spc.rating;
+}
+
+bool operator==(Spectacle& spc, const char* input) {
+    if (strlen(spc.spectacle_name) != strlen(input))
+        return false;
+    else {
+        for (int i = 0; i < strlen(spc.spectacle_name); i++) {
+            if ((!(input[i] >= 'a' && input[i] <= 'z') || !(input[i] >= 'A' && input[i] <= 'Z')) && input[i] != spc.spectacle_name[i])
+                return false;
+            if (!((spc.spectacle_name[i] == input[i] || input[i] - spc.spectacle_name[i] == 32 || spc.spectacle_name[i] - input[i] == 32)))
+                return false;
+        }
+        return true;
+    }
 }
 
 char* Spectacle::get_name() {
@@ -629,4 +691,9 @@ Actor& Actor::operator=(Actor& act) {
 
     }
     return *this;
+}
+Actor::Actor(const Actor& act)
+{
+    this->age = act.age;
+    this->name = act.name;
 }
